@@ -1,0 +1,26 @@
+{
+  "name": "@torb.xyz/mine",
+  "version": "0.1.1",
+  "description": "TypeScript library that allows you to easily get (“mine”) data from Craft CMS.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/torb-xyz/mine.git"
+  },
+  "author": "Torb Lunde Miranda",
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/torb-xyz/mine#readme",
+  "devDependencies": {
+    "typescript": "^3.8.3"
+  },
+  "publishConfig": { "access": "public" }
+}

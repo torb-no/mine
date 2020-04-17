@@ -1,5 +1,5 @@
 import { Field, AdvancedRequirement, UndefinedIfNotRequired, missingDataReturn, PostfixLocalize, BasicRequirement, postfixLocalizeName } from './base-field';
-import { InnerFieldSet, innerFieldSetQuery, fieldsFromDefinition } from './base-fieldset';
+import { InnerFieldSet, innerFieldSetQuery, fieldsFromDefinition, extractFromInnerFieldSets } from './base-fieldset';
 
 // BASIC FIELDS
 
@@ -93,7 +93,7 @@ export const matrix = <
     BR extends BasicRequirement,
 >(
     definitions: MDBS,
-    requirement?: BR,
+    requirement?: BR, // TODO
     postfixLocalize?: PostfixLocalize,
 ) => {
     const blocks = definitions as any as InnerFieldSet[];
@@ -114,8 +114,15 @@ export const matrix = <
             ), '');
             return `${localizedName} {${innerQuery}}`;
         },
-        extract: async () => {
-            return [{}] as MDBS;
+        extract: async ({ name, data, language }) => {
+            const result = await extractFromInnerFieldSets(
+                blocks, 'multiple', data as any, language
+            );
+            if (result.length <= 0) {
+                return missingDataReturn(name, requirement);
+            }
+
+            return result;
         }
     }
 

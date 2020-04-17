@@ -96,6 +96,65 @@ export const fieldSetCollectionQuery = (
 }`
 }
 
+export const extractFromInnerFieldSets = async (
+    inners: InnerFieldSet[],
+    plurality: 'single' | 'multiple',
+    data: unknown[],
+    language: string | undefined,
+): Promise<any> => {
+    if (!Array.isArray(inners)) {
+        const err = new Error('inners was not array');
+        console.error({ err, inners });
+        return Promise.reject(err);
+    }
+
+    inners.every(ifs => {
+        if (ifs.kind !== 'InnerFieldSet') {
+            const err = new Error('wrong kind of InnerFieldSet');
+            console.error({ err, inners, ifs });
+            return Promise.reject(err);
+        }
+    })
+
+    if (!Array.isArray(data)) {
+        const err = new Error('Server data was not array');
+        console.error({ err, data });
+        return Promise.reject(err);
+    }
+
+    if (plurality === 'single') {
+        if (data.length > 1) {
+            console.warn('More than 1 data entry for single plurality request');
+        }
+    }
+
+    const first = inners[0];
+    const term = first.handlePair !== undefined
+                    ? first.handlePair.term
+                    : undefined;
+
+    const results = await Promise.all(
+        data.map(dataEntry => {
+            const inner = term !== undefined
+                ? inners.find(i => i.handlePair!.handle === dataEntry[term])
+                : first;
+            if (inner === undefined) {
+                return Promise.reject('Could not find inner');
+            }
+
+            return extractFromInnerFieldSet(inner, dataEntry, language)
+        })
+    );
+
+    if (plurality === 'single') {
+        if (results.length < 1) {
+            return Promise.reject('No data for single');
+        }
+        return results[0];
+    }
+
+    return results;
+}
 
 
 // NAMED FIELDS
@@ -182,6 +241,32 @@ export const innerFieldSetQuery = (
 
     return `...on ${start}${mid}${end} {${fieldsExpr}
     }`;
+}
+
+export const extractFromInnerFieldSet = async (
+    innerFieldSet: InnerFieldSet,
+    data: any,
+    language: string | undefined,
+): Promise<Object> => {
+    if (innerFieldSet.kind !== 'InnerFieldSet') {
+        return Promise.reject(new Error('Did not get InnerFieldSet'))
+    }
+    
+    const { fields } = innerFieldSet;
+
+    const extractedData = await Promise.all(
+        fields.map((namedField) => namedField.field.extract({
+            name: namedField.name,
+            data: data[postfixLocalizeName(namedField, language)],
+            language,
+        }))
+    );
+
+    const resultObj = Object.fromEntries(
+        extractedData.map((value, i) => [fields[i].name, value])
+    );
+
+    return resultObj;
 }
 
 

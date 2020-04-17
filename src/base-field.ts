@@ -23,9 +23,10 @@ export type Field<T> = {
     // Extract
     // Using promise since we might
     // want to implement time shifted features at some point
-    extract: ({ name, data }: {
+    extract: ({ name, data, language }: {
         name: string,
         data: unknown,
+        language: string | undefined,
     }) => Promise<T>,
 }
 

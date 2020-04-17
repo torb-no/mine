@@ -1,5 +1,5 @@
-import { FieldSet, fieldsFromDefinition, innerFieldSetQuery } from './base-fieldset';
-import { Field, BasicRequirement, PostfixLocalize } from './base-field';
+import { FieldSet, fieldsFromDefinition, innerFieldSetQuery, extractFromInnerFieldSets } from './base-fieldset';
+import { Field, BasicRequirement, PostfixLocalize, missingDataReturn } from './base-field';
 
 export const defineCategory = <
     CD extends { groupHandle: string, },
@@ -40,6 +40,13 @@ export const category = <
 ) => {
     const categoryGroups = definitions as any as FieldSet[];
 
+    if (!Array.isArray(categoryGroups)) {
+        throw new Error('category group was not array');
+    }
+    if (categoryGroups.length === 0) {
+        throw new Error('category groups was empty');
+    }
+
     // Confirm that we actually got a group
     categoryGroups.forEach(cg => {
         if (cg.outer.rootTerm !== 'categories') {
@@ -51,15 +58,25 @@ export const category = <
         kind: 'Field',
         settings: { postfixLocalize },
         query: ({ localizedName, language }) => {
+            const handle = categoryGroups[0].outer.handlePair.handle;
             const innerQuery = categoryGroups.reduce((prev, cg) => {
                 const { inner } = cg;
                 return `${prev}
-                ${innerFieldSetQuery(inner, localizedName, language)}`
+                ${innerFieldSetQuery(inner, handle, language)}`
             }, '');
             return `${localizedName} {${innerQuery}}`;
         },
-        extract: async () => {
-            return [{}] as CDS;
+        extract: async ({ name, data, language }) => {
+            const inners = categoryGroups.map(cg => cg.inner);
+            const result = await extractFromInnerFieldSets(
+                inners, 'multiple', data as any, language
+            );
+
+            if (result.length <= 0) {
+                return missingDataReturn(name, requirement);
+            }
+
+            return result;
         },
     };
 

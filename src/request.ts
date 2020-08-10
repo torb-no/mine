@@ -70,7 +70,7 @@ export const getRequest = async <RD extends {}>(
     const query = requestQuery(requestCollection, langDumm);
     const data = await mineConnection.get({ query });
 
-    return data;
+    return data as RD;
 }
 
 export const setupMineConnection = ({ baseURL }: {

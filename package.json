@@ -1,6 +1,6 @@
 {
   "name": "@torb.xyz/mine",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "TypeScript library that allows you to easily get (“mine”) data from Craft CMS.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

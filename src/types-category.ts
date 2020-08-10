@@ -81,7 +81,7 @@ export const category = <
     };
 
     // Lie about the return value to help type system
-    return result as any as CDS[];
+    return result as any as CDS;
 }
 
 // const cat = defineCategory({

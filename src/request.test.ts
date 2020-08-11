@@ -1,10 +1,16 @@
 import { text, raw, numeric, matrix, defineMatrixBlock } from './types-fields';
 import { defineSectionEntry, defineGlobalSet } from './types-fieldsets';
-import { defineRequestCollection, requestQuery, extractFromRequest, } from './request';
+import { defineRequestCollection, requestQuery, extractFromRequest, MineConnection, } from './request';
 import { bvmValidServerData, bvmCorrectExtractedData } from './request.test.data';
 import { FieldSetCollection } from './base-fieldset';
+import { defineCategory, category } from './types-category';
 
 describe('test from real example', () => {
+    const someCategory = defineCategory({
+        groupHandle: 'someCategory',
+        title: text('required'),
+    })
+
     const galleryEntry = defineMatrixBlock({
         typeHandle: 'entry' as const,
         text: text('optional', 'postfixLocalize'),
@@ -20,6 +26,8 @@ describe('test from real example', () => {
 
         gallery: matrix([galleryEntry]),
         name: text('required', 'postfixLocalize'),
+
+        category: category([someCategory], 'required'),
     });
 
     const filter = defineSectionEntry({
